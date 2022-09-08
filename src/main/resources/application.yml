@@ -1,0 +1,13 @@
+spring:
+  config:
+    import: optional:file:.env[.yml]
+  datasource:
+    url: jdbc:postgresql://localhost:8081/rubetek
+    username: root
+    password: root
+    driverClassName: org.postgresql.Driver
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    open-in-view: false
+VALUE: ${milliseconds}
