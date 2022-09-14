@@ -75,7 +75,7 @@ public class UpdatingConfig {
         }
     }
 
-    @Scheduled(fixedRateString = "${milliseconds}")//"MILLISECONDS")
+    @Scheduled(fixedRateString = "${milliseconds}")
     void update() {
         /*Обновление данных про камеры*/
         // Calling '/api/rubetek/cameras'
