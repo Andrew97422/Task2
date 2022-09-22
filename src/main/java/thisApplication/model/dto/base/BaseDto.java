@@ -1,4 +1,4 @@
-package thisApplication.model.dto.generics;
+package thisApplication.model.dto.base;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

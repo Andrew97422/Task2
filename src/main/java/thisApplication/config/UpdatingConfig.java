@@ -7,10 +7,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import thisApplication.model.dto.camera.CameraDto;
 import thisApplication.model.dto.door.DoorDto;
+import thisApplication.model.dto.room.RoomDto;
 import thisApplication.model.entity.camera.CameraEntity;
 import thisApplication.model.entity.door.DoorEntity;
+import thisApplication.model.entity.room.RoomEntity;
 import thisApplication.repository.CameraRepository;
 import thisApplication.repository.DoorRepository;
+import thisApplication.repository.RoomRepository;
 import thisApplication.service.RetrofitService;
 
 import java.util.List;
@@ -21,78 +24,101 @@ import java.util.List;
 public class UpdatingConfig {
     private final CameraRepository cameraRepository;
     private final DoorRepository doorRepository;
+    private final RoomRepository roomRepository;
     private final RetrofitService retrofitService;
     @Bean
     void create() {
-        /*Обновление данных про камеры*/
-        //assert response1.body() != null; найти альтернативу
-
+        /*Создание данных про камеры*/
         List<CameraDto> cameras = retrofitService.response("CameraDto");
-        cameras.forEach(c -> cameraRepository.save(new CameraEntity().builder()
-                .name(c.getName())
-                .id(c.getId())
-                .room(c.getRoom())
-                .snapshot(c.getSnapshot())
-                .build()
-        ));
+        if (cameras != null) {
+            cameras.forEach(c -> cameraRepository.save(CameraEntity.builder()
+                    .name(c.getName())
+                    .id(c.getId())
+                    .room(c.getRoom())
+                    .snapshot(c.getSnapshot())
+                    .build()
+            ));
+        } else throw new NullPointerException();
 
-        /*Обновление данных про двери*/
-        // Calling '/api/rubetek/doors'
-        //assert response2.body() != null;
-
+        /*Создание данных про двери*/
         List<DoorDto> doors = retrofitService.response("DoorDto");
-        doors.forEach(c -> doorRepository.save(new DoorEntity().builder()
-                .name(c.getName())
-                .snapshot(c.getSnapshot())
-                .id(c.getId())
-                .room(c.getRoom())
-                .build()
-        ));
+        if (doors != null) {
+            doors.forEach(c -> doorRepository.save(DoorEntity.builder()
+                    .name(c.getName())
+                    .snapshot(c.getSnapshot())
+                    .id(c.getId())
+                    .room(c.getRoom())
+                    .build()
+            ));
+        } else throw new NullPointerException();
+
+        /*Создание данных про комнаты*/
+        List<String> roomsString = retrofitService.response("RoomDto");
+        if (roomsString != null) {
+            List<RoomDto> rooms = roomsString.stream().map(RoomDto::new).toList();
+            if (!rooms.contains(new RoomDto().getName() == null)) {
+                rooms.forEach(c -> roomRepository.save(RoomEntity.builder()
+                        .name(c.getName())
+                        .build()
+                ));
+            } else throw new NullPointerException();
+        }
     }
 
     @Scheduled(fixedRateString = "${milliseconds}")
     void update() {
         /*Обновление данных про камеры*/
-        // Calling '/api/rubetek/cameras'
-        //assert response1.body() != null;
         List<CameraDto> cameras = retrofitService.response("CameraDto");
-        List<CameraEntity> cameraEntities = cameras.stream()
-                .map(c -> cameraRepository.findById(c.getId())
-                        .map(entity -> { // Если есть в базе
-                            entity.setRoom(c.getRoom());
-                            entity.setName(c.getName());
-                            entity.setSnapshot(c.getSnapshot());
-                            return entity;
-                        })
-                        .orElseGet(() -> { // Если нет в базе
-                            CameraEntity entity = c.mapDtoToEntity();
-                            entity.setFavorites(c.isFavorites());
-                            entity.setRec(c.isRec());
-                            return entity;
-                        })
-                ).toList();
+        if (cameras != null) {
+            List<CameraEntity> cameraEntities = cameras.stream()
+                    .map(c -> cameraRepository.findById(c.getId())
+                            .map(entity -> { // Если есть в базе
+                                entity.setRoom(c.getRoom());
+                                entity.setName(c.getName());
+                                entity.setSnapshot(c.getSnapshot());
+                                return entity;
+                            })
+                            .orElseGet(() -> { // Если нет в базе
+                                CameraEntity entity = c.mapDtoToEntity();
+                                entity.setFavorites(c.isFavorites());
+                                entity.setRec(c.isRec());
+                                return entity;
+                            })
+                    ).toList();
 
-        cameraRepository.saveAll(cameraEntities);
-
+            cameraRepository.saveAll(cameraEntities);
+        } else throw new NullPointerException();
         /*Обновление данных про двери*/
-        // Calling '/api/rubetek/doors'
-        //assert response2.body() != null;
         List<DoorDto> doors = retrofitService.response("DoorDto");
-        List<DoorEntity> doorEntities = doors.stream()
-                .map(c -> doorRepository.findById(c.getId())
-                        .map(entity -> { // Если есть в базе
-                            entity.setRoom(c.getRoom());
-                            entity.setName(c.getName());
-                            entity.setSnapshot(c.getSnapshot());
-                            return entity;
-                        })
-                        .orElseGet(() -> { // Если нет в базе
-                            DoorEntity entity = c.mapDtoToEntity();
-                            entity.setFavorites(c.isFavorites());
-                            return entity;
-                        })
-                ).toList();
+        if (doors != null) {
+            List<DoorEntity> doorEntities = doors.stream()
+                    .map(c -> doorRepository.findById(c.getId())
+                            .map(entity -> { // Если есть в базе
+                                entity.setRoom(c.getRoom());
+                                entity.setName(c.getName());
+                                entity.setSnapshot(c.getSnapshot());
+                                return entity;
+                            })
+                            .orElseGet(() -> { // Если нет в базе
+                                DoorEntity entity = c.mapDtoToEntity();
+                                entity.setFavorites(c.isFavorites());
+                                return entity;
+                            })
+                    ).toList();
 
-        doorRepository.saveAll(doorEntities);
+            doorRepository.saveAll(doorEntities);
+        } else throw new NullPointerException();
+
+        /*Обновление данных про комнаты*/
+        List<String> roomsString = retrofitService.response("RoomDto");
+        if (roomsString != null) {
+            List<RoomDto> rooms = roomsString.stream().map(RoomDto::new).toList();
+            if (!rooms.contains(new RoomDto().getName() == null)) {
+                rooms.forEach(c -> roomRepository.save(RoomEntity.builder()
+                        .name(c.getName())
+                        .build()
+                ));
+            } else throw new NullPointerException();
+        }
     }
 }

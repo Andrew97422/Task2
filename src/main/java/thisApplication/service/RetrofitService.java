@@ -8,18 +8,16 @@ import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import thisApplication.model.dto.camera.CameraDto;
-import thisApplication.model.dto.door.DoorDto;
-import thisApplication.model.dto.generics.BaseApi;
-import thisApplication.model.dto.generics.BaseDto;
+import thisApplication.model.dto.camera.CameraApi;
+import thisApplication.model.dto.door.DoorApi;
 
 import java.io.IOException;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class RetrofitService<T extends BaseDto> {
-    public @Nullable List<T> response() {
+public class RetrofitService {
+    public @Nullable List response(String dto) {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://cars.cprogroup.ru/")
@@ -29,25 +27,47 @@ public class RetrofitService<T extends BaseDto> {
 
         CarService service = retrofit.create(CarService.class);
 
-        Call<BaseApi<T>> call;
-
-
-        /*switch (T) {
-            case CameraDto:
-                Call<BaseApi<CameraDto>> callCamera = service.getCameras();
-                Response<BaseApi<CameraDto>> response1;
+        switch (dto) {
+            case "CameraDto" -> {
+                Call<CameraApi> callCamera = service.getCameras();
+                Response<CameraApi> response1;
                 try {
                     response1 = callCamera.execute();
-                    return response1.body().getData();
-                } catch (IOException e) {throw new RuntimeException(e);}
-            case "DoorDto":
-                Call<BaseApi<DoorDto>> callDoor = service.getDoors();
-                Response<BaseApi<DoorDto>> response2;
+                    if (response1.body().getData().getCameras() == null) {
+                        throw new NullPointerException();
+                    }
+                    return response1.body().getData().getCameras();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case "DoorDto" -> {
+                Call<DoorApi> callDoor = service.getDoors();
+                Response<DoorApi> response2;
                 try {
                     response2 = callDoor.execute();
+                    if (response2.body().getData() == null) {
+                        throw new NullPointerException();
+                    }
                     return response2.body().getData();
-                } catch (IOException e) {throw new RuntimeException(e);}
-        }*/
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case "RoomDto" -> {
+                Call<CameraApi> callCamera = service.getCameras();
+                Response<CameraApi> response3;
+                try {
+                    response3 = callCamera.execute();
+                    if (response3.body().getData().getRoom() == null) {
+                        throw new NullPointerException();
+                    }
+                    return response3.body().getData().getRoom();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
         return List.of();
     }
 }

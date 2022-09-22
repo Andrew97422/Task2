@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import thisApplication.model.entity.room.RoomEntity;
 
 @Data
 @AllArgsConstructor
@@ -14,4 +15,11 @@ import lombok.NoArgsConstructor;
 public class RoomDto {
     @Schema(description = "Название комнаты")
     String name;
+    public RoomEntity mapDtoToEntity() {
+        return RoomEntity.builder().name(getName()).build();
+    }
+
+    public RoomDto mapEntityToDto(RoomEntity roomEntity) {
+        return RoomDto.builder().name(roomEntity.getName()).build();
+    }
 }
