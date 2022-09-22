@@ -1,18 +1,20 @@
-package thisApplication.model.dto;
+package thisApplication.model.dto.door;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import thisApplication.model.entity.DoorEntity;
+import lombok.experimental.SuperBuilder;
+import thisApplication.model.dto.generics.BaseDto;
+import thisApplication.model.entity.door.DoorEntity;
 
 @Schema(description = "Дверь")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
-public class DoorDto {
+@SuperBuilder
+public class DoorDto extends BaseDto {
     @Schema(description = "Название двери")
     String name;
 

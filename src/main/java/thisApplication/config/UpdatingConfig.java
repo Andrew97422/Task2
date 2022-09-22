@@ -1,132 +1,98 @@
 package thisApplication.config;
 
 import lombok.RequiredArgsConstructor;
-import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import retrofit2.Call;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import thisApplication.model.dto.CameraApi;
-import thisApplication.model.dto.CameraDto;
-import thisApplication.model.dto.DoorApi;
-import thisApplication.model.dto.DoorDto;
-import thisApplication.model.entity.CameraEntity;
-import thisApplication.model.entity.DoorEntity;
-import thisApplication.service.CameraService;
-import thisApplication.service.CarService;
-import thisApplication.service.DoorService;
+import thisApplication.model.dto.camera.CameraDto;
+import thisApplication.model.dto.door.DoorDto;
+import thisApplication.model.entity.camera.CameraEntity;
+import thisApplication.model.entity.door.DoorEntity;
+import thisApplication.repository.CameraRepository;
+import thisApplication.repository.DoorRepository;
+import thisApplication.service.RetrofitService;
 
-import java.io.IOException;
 import java.util.List;
 
 @EnableScheduling
 @Configuration
 @RequiredArgsConstructor
 public class UpdatingConfig {
-    private final CameraService cameraService;
-    private final DoorService doorService;
-    OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
-    Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("http://cars.cprogroup.ru/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(httpClient.build())
-            .build();
-
-    CarService service = retrofit.create(CarService.class);
-    Call<CameraApi> callCamera = service.getCameras();
-    Call<DoorApi> callDoor = service.getDoors();
-    Response<CameraApi> response1;
-    Response<DoorApi> response2;
-    {
-        try {
-            response1 = callCamera.execute();
-            response2 = callDoor.execute();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    private final CameraRepository cameraRepository;
+    private final DoorRepository doorRepository;
+    private final RetrofitService retrofitService;
     @Bean
     void create() {
         /*Обновление данных про камеры*/
-        assert response1.body() != null;
-        CameraDto[] cameras = response1.body().getData().getCameras();
+        //assert response1.body() != null; найти альтернативу
 
-        for (CameraDto camera : cameras) {
-            CameraEntity cameraEntity = camera.mapDtoToEntity();
-            cameraEntity.setRec(camera.isRec());
-            cameraEntity.setFavorites(camera.isFavorites());
-            cameraService.saveEntity(cameraEntity);
-        }
+        List<CameraDto> cameras = retrofitService.response("CameraDto");
+        cameras.forEach(c -> cameraRepository.save(new CameraEntity().builder()
+                .name(c.getName())
+                .id(c.getId())
+                .room(c.getRoom())
+                .snapshot(c.getSnapshot())
+                .build()
+        ));
 
         /*Обновление данных про двери*/
         // Calling '/api/rubetek/doors'
-        assert response2.body() != null;
-        DoorDto[] doors = response2.body().getData();
+        //assert response2.body() != null;
 
-        for (DoorDto door : doors) {
-            DoorEntity doorEntity = door.mapDtoToEntity();
-            doorEntity.setFavorites(door.isFavorites());
-            doorService.saveEntity(doorEntity);
-        }
+        List<DoorDto> doors = retrofitService.response("DoorDto");
+        doors.forEach(c -> doorRepository.save(new DoorEntity().builder()
+                .name(c.getName())
+                .snapshot(c.getSnapshot())
+                .id(c.getId())
+                .room(c.getRoom())
+                .build()
+        ));
     }
 
     @Scheduled(fixedRateString = "${milliseconds}")
     void update() {
         /*Обновление данных про камеры*/
         // Calling '/api/rubetek/cameras'
-        assert response1.body() != null;
-        CameraDto[] cameras = response1.body().getData().getCameras();
+        //assert response1.body() != null;
+        List<CameraDto> cameras = retrofitService.response("CameraDto");
+        List<CameraEntity> cameraEntities = cameras.stream()
+                .map(c -> cameraRepository.findById(c.getId())
+                        .map(entity -> { // Если есть в базе
+                            entity.setRoom(c.getRoom());
+                            entity.setName(c.getName());
+                            entity.setSnapshot(c.getSnapshot());
+                            return entity;
+                        })
+                        .orElseGet(() -> { // Если нет в базе
+                            CameraEntity entity = c.mapDtoToEntity();
+                            entity.setFavorites(c.isFavorites());
+                            entity.setRec(c.isRec());
+                            return entity;
+                        })
+                ).toList();
 
-        List<CameraEntity> cameraEntities = cameraService.getAll();
-
-        for (CameraDto camera : cameras) {
-            boolean has = false;
-            for (CameraEntity cameraEntity : cameraEntities) {
-                if (camera.getId() == cameraEntity.getId()) {
-                    CameraEntity cameraEntity1 = camera.mapDtoToEntity();
-                    cameraEntity1.setRec(cameraEntity.isRec());
-                    cameraEntity1.setFavorites(cameraEntity.isFavorites());
-                    cameraService.saveEntity(cameraEntity1);
-                    has = true;
-                    break;
-                }
-            }
-            if (!has) {
-                CameraEntity cameraEntity = camera.mapDtoToEntity();
-                cameraEntity.setFavorites(camera.isFavorites());
-                cameraEntity.setRec(camera.isRec());
-                cameraService.saveEntity(cameraEntity);
-            }
-        }
+        cameraRepository.saveAll(cameraEntities);
 
         /*Обновление данных про двери*/
         // Calling '/api/rubetek/doors'
-        assert response2.body() != null;
-        DoorDto[] doors = response2.body().getData();
+        //assert response2.body() != null;
+        List<DoorDto> doors = retrofitService.response("DoorDto");
+        List<DoorEntity> doorEntities = doors.stream()
+                .map(c -> doorRepository.findById(c.getId())
+                        .map(entity -> { // Если есть в базе
+                            entity.setRoom(c.getRoom());
+                            entity.setName(c.getName());
+                            entity.setSnapshot(c.getSnapshot());
+                            return entity;
+                        })
+                        .orElseGet(() -> { // Если нет в базе
+                            DoorEntity entity = c.mapDtoToEntity();
+                            entity.setFavorites(c.isFavorites());
+                            return entity;
+                        })
+                ).toList();
 
-        List<DoorEntity> doorEntities = doorService.getAll();
-
-        for (DoorDto door : doors) {
-            boolean has = false;
-            for (DoorEntity doorEntity : doorEntities) {
-                if (door.getId() == doorEntity.getId()) {
-                    DoorEntity doorEntity1 = door.mapDtoToEntity();
-                    doorEntity1.setFavorites(doorEntity.isFavorites());
-                    doorService.saveEntity(doorEntity1);
-                    has = true;
-                    break;
-                }
-            }
-            if (!has) {
-                DoorEntity doorEntity = door.mapDtoToEntity();
-                doorEntity.setFavorites(door.isFavorites());
-                doorService.saveEntity(doorEntity);
-            }
-        }
+        doorRepository.saveAll(doorEntities);
     }
 }

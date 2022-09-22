@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import thisApplication.model.dto.CameraDto;
+import thisApplication.model.dto.camera.CameraDto;
 import thisApplication.service.CameraService;
 
 import java.util.List;
@@ -18,27 +18,27 @@ public class CameraController {
     private final CameraService cameraService;
 
     @GetMapping("/rooms")
-    public String[] getAllRooms() {
+    public List <String> getAllRooms() {
         return cameraService.getRooms();
     }
 
-    @GetMapping("/cameras_in_room/{room}")
+    @GetMapping("/cameras/{room}")
     public List<CameraDto> getCamerasInRoom(
             @PathVariable("room") String room) {
         return cameraService.getCamerasInRoom(room);
     }
 
-    @GetMapping("/get_favorite")
+    @GetMapping("/favorite")
     public List<CameraDto> getFavoriteCameras() {
         return cameraService.getFavoritesCameras();
     }
 
-    @PatchMapping("/set_favorite/{name}")
+    @PatchMapping("/favorite/{name}")
     public void updateF(@PathVariable("name") String name) {
         cameraService.setCameraFavorite(name);
     }
 
-    @PatchMapping("/set_rec/{name}")
+    @PatchMapping("/rec/{name}")
     public void updateR(@PathVariable("name") String name) {
         cameraService.setCameraRec(name);
     }

@@ -1,8 +1,8 @@
 package thisApplication.service;
 
 import org.springframework.stereotype.Service;
-import thisApplication.model.dto.CameraDto;
-import thisApplication.model.entity.CameraEntity;
+import thisApplication.model.dto.camera.CameraDto;
+import thisApplication.model.entity.camera.CameraEntity;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import java.util.List;
 public interface CameraService {
     List<CameraEntity> getAll();
 
-    String[] getRooms();
+    List <String> getRooms();
 
     List<CameraDto> getCamerasInRoom(String Room);
 

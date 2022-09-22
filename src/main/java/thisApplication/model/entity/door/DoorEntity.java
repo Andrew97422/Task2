@@ -1,4 +1,4 @@
-package thisApplication.model.entity;
+package thisApplication.model.entity.door;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,21 +11,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "doors")
 @Builder
-@Table(name = "cameras")
-public class CameraEntity {
+public class DoorEntity {
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private int id;
 
     @Column(name = "name")
     private String name;
-
-    @Column(name = "snapshot")
-    private String snapshot;
 
     @Column(name = "room")
     private String room;
@@ -33,6 +30,6 @@ public class CameraEntity {
     @Column(name = "favorites")
     private boolean favorites;
 
-    @Column(name = "rec")
-    private boolean rec;
+    @Column(name = "snapshot")
+    String snapshot;
 }

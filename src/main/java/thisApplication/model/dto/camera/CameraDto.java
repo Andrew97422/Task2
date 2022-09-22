@@ -1,19 +1,21 @@
-package thisApplication.model.dto;
+package thisApplication.model.dto.camera;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.jetbrains.annotations.NotNull;
-import thisApplication.model.entity.CameraEntity;
+import thisApplication.model.dto.generics.BaseDto;
+import thisApplication.model.entity.camera.CameraEntity;
 
 @Schema(description = "Камера")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
-public class CameraDto {
+@SuperBuilder
+public class CameraDto extends BaseDto {
     @Schema(description = "Название камеры")
     private String name;
 

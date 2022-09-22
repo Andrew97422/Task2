@@ -3,8 +3,8 @@ package thisApplication.service.Impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import thisApplication.model.dto.DoorDto;
-import thisApplication.model.entity.DoorEntity;
+import thisApplication.model.dto.door.DoorDto;
+import thisApplication.model.entity.door.DoorEntity;
 import thisApplication.repository.DoorRepository;
 import thisApplication.service.DoorService;
 
@@ -23,31 +23,26 @@ public class DoorServiceImpl implements DoorService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DoorDto> getDoorsInRoom(String Room) {
-        return doorRepository.findAll().stream()
-                .map(doorEntity -> new DoorDto()
-                        .mapEntityToDto(doorEntity))
+    public List<DoorDto> getDoorsInRoom(String room) {
+        return doorRepository.findDoorEntitiesByRoom(room).stream()
+                .map(new DoorDto()::mapEntityToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<DoorDto> getFavoritesDoors() {
-        return doorRepository.findAll().stream()
-                .map(doorEntity -> new DoorDto()
-                        .mapEntityToDto(doorEntity))
-                .filter(DoorDto::isFavorites)
+        return doorRepository.findAllByFavoritesIsTrue().stream()
+                .map(new DoorDto()::mapEntityToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void setDoorFavorite(String name) {
-        for (DoorEntity door : doorRepository.findAll()) {
-            if (door.getName().equals(name)) {
-                door.setFavorites(true);
-            }
-        }
+        DoorEntity doorEntity = doorRepository.findDoorEntityByName(name);
+        doorEntity.setFavorites(true);
+        doorRepository.save(doorEntity);
     }
 
     @Override
