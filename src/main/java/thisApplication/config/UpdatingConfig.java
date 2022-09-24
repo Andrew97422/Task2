@@ -56,7 +56,7 @@ public class UpdatingConfig {
         List<String> roomsString = retrofitService.response("RoomDto");
         if (roomsString != null) {
             List<RoomDto> rooms = roomsString.stream().map(RoomDto::new).toList();
-            if (!rooms.contains(new RoomDto().getName() == null)) {
+            if (!rooms.contains(new RoomDto().getName())) {
                 rooms.forEach(c -> roomRepository.save(RoomEntity.builder()
                         .name(c.getName())
                         .build()
@@ -88,6 +88,7 @@ public class UpdatingConfig {
 
             cameraRepository.saveAll(cameraEntities);
         } else throw new NullPointerException();
+
         /*Обновление данных про двери*/
         List<DoorDto> doors = retrofitService.response("DoorDto");
         if (doors != null) {
@@ -113,12 +114,16 @@ public class UpdatingConfig {
         List<String> roomsString = retrofitService.response("RoomDto");
         if (roomsString != null) {
             List<RoomDto> rooms = roomsString.stream().map(RoomDto::new).toList();
-            if (!rooms.contains(new RoomDto().getName() == null)) {
-                rooms.forEach(c -> roomRepository.save(RoomEntity.builder()
-                        .name(c.getName())
-                        .build()
-                ));
-            } else throw new NullPointerException();
-        }
+            List<RoomEntity> roomEntities = rooms.stream()
+                    .map(c -> roomRepository.findById(c.getName())
+                            .map(entity -> {
+                                entity.setName(c.getName());
+                                return entity;
+                            })
+                            .orElseGet(() -> c.mapDtoToEntity())
+                    ).toList();
+
+            roomRepository.saveAll(roomEntities);
+        } else throw new NullPointerException();
     }
 }
