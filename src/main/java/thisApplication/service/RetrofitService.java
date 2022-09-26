@@ -8,6 +8,7 @@ import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import thisApplication.config.enums.DtoType;
 import thisApplication.model.dto.camera.CameraApi;
 import thisApplication.model.dto.door.DoorApi;
 
@@ -17,7 +18,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RetrofitService {
-    public @Nullable List response(String dto) {
+    public @Nullable List response(DtoType dto) {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://cars.cprogroup.ru/")
@@ -28,7 +29,7 @@ public class RetrofitService {
         CarService service = retrofit.create(CarService.class);
 
         switch (dto) {
-            case "CameraDto" -> {
+            case CAMERA_DTO -> {
                 Call<CameraApi> callCamera = service.getCameras();
                 Response<CameraApi> response1;
                 try {
@@ -41,7 +42,7 @@ public class RetrofitService {
                     throw new RuntimeException(e);
                 }
             }
-            case "DoorDto" -> {
+            case DOOR_DTO -> {
                 Call<DoorApi> callDoor = service.getDoors();
                 Response<DoorApi> response2;
                 try {
@@ -54,7 +55,7 @@ public class RetrofitService {
                     throw new RuntimeException(e);
                 }
             }
-            case "RoomDto" -> {
+            case ROOM_DTO -> {
                 Call<CameraApi> callCamera = service.getCameras();
                 Response<CameraApi> response3;
                 try {

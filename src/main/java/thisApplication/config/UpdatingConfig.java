@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import thisApplication.config.enums.DtoType;
 import thisApplication.model.dto.camera.CameraDto;
 import thisApplication.model.dto.door.DoorDto;
 import thisApplication.model.dto.room.RoomDto;
@@ -29,7 +30,7 @@ public class UpdatingConfig {
     @Bean
     void create() {
         /*Создание данных про камеры*/
-        List<CameraDto> cameras = retrofitService.response("CameraDto");
+        List<CameraDto> cameras = retrofitService.response(DtoType.CAMERA_DTO);
         if (cameras != null) {
             cameras.forEach(c -> cameraRepository.save(CameraEntity.builder()
                     .name(c.getName())
@@ -41,7 +42,7 @@ public class UpdatingConfig {
         } else throw new NullPointerException();
 
         /*Создание данных про двери*/
-        List<DoorDto> doors = retrofitService.response("DoorDto");
+        List<DoorDto> doors = retrofitService.response(DtoType.DOOR_DTO);
         if (doors != null) {
             doors.forEach(c -> doorRepository.save(DoorEntity.builder()
                     .name(c.getName())
@@ -53,7 +54,7 @@ public class UpdatingConfig {
         } else throw new NullPointerException();
 
         /*Создание данных про комнаты*/
-        List<String> roomsString = retrofitService.response("RoomDto");
+        List<String> roomsString = retrofitService.response(DtoType.ROOM_DTO);
         if (roomsString != null) {
             List<RoomDto> rooms = roomsString.stream().map(RoomDto::new).toList();
             if (!rooms.contains(new RoomDto().getName())) {
@@ -68,7 +69,7 @@ public class UpdatingConfig {
     @Scheduled(fixedRateString = "${milliseconds}")
     void update() {
         /*Обновление данных про камеры*/
-        List<CameraDto> cameras = retrofitService.response("CameraDto");
+        List<CameraDto> cameras = retrofitService.response(DtoType.CAMERA_DTO);
         if (cameras != null) {
             List<CameraEntity> cameraEntities = cameras.stream()
                     .map(c -> cameraRepository.findById(c.getId())
@@ -90,7 +91,7 @@ public class UpdatingConfig {
         } else throw new NullPointerException();
 
         /*Обновление данных про двери*/
-        List<DoorDto> doors = retrofitService.response("DoorDto");
+        List<DoorDto> doors = retrofitService.response(DtoType.DOOR_DTO);
         if (doors != null) {
             List<DoorEntity> doorEntities = doors.stream()
                     .map(c -> doorRepository.findById(c.getId())
@@ -111,7 +112,7 @@ public class UpdatingConfig {
         } else throw new NullPointerException();
 
         /*Обновление данных про комнаты*/
-        List<String> roomsString = retrofitService.response("RoomDto");
+        List<String> roomsString = retrofitService.response(DtoType.ROOM_DTO);
         if (roomsString != null) {
             List<RoomDto> rooms = roomsString.stream().map(RoomDto::new).toList();
             List<RoomEntity> roomEntities = rooms.stream()
@@ -120,7 +121,7 @@ public class UpdatingConfig {
                                 entity.setName(c.getName());
                                 return entity;
                             })
-                            .orElseGet(() -> c.mapDtoToEntity())
+                            .orElseGet(c::mapDtoToEntity)
                     ).toList();
 
             roomRepository.saveAll(roomEntities);
